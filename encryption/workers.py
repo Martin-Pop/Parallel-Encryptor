@@ -16,7 +16,8 @@ def encryption_worker(task_queue, result_queue, key, base_nonce, stop_token):
         nonce = nonce_int.to_bytes(12, 'big')
 
         ciphertext = aes.encrypt(nonce, chunk, None)
-        result_queue.put((chunk_id, nonce, ciphertext))
+        print(len(ciphertext))
+        result_queue.put((chunk_id, ciphertext))
 
 def decryption_worker(task_queue, result_queue, key, base_nonce, stop_token):
 
@@ -24,13 +25,12 @@ def decryption_worker(task_queue, result_queue, key, base_nonce, stop_token):
     while True:
         task = task_queue.get()
 
-        if task is stop_token:
+        if task == stop_token:
             break
 
         chunk_id, chunk = task
 
-        nonce_int = base_nonce + chunk_id
-        nonce = nonce_int.to_bytes(12, 'big')
-
+        nonce_int = (base_nonce << 32) | chunk_id
+        nonce = nonce_int.to_bytes(12, "big")
         plaintext = aes.decrypt(nonce, chunk, None)
-        result_queue.put((chunk_id, chunk, plaintext))
+        result_queue.put((chunk_id, plaintext))
