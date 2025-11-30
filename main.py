@@ -56,37 +56,43 @@ def main():
 
 if __name__ == "__main__":
 
-    # log
-    log_queue, log_listener = configure_logger_queue('app.log')
-    add_queue_handler_to_root(log_queue)
     log = logging.getLogger(__name__)
+    log_listener = None
+    try:
+        # log
+        log_queue, log_listener = configure_logger_queue('app.log')
+        add_queue_handler_to_root(log_queue)
 
-    log_listener.start()
+        log_listener.start()
 
-    # args
-    args = parse_args()
-    is_encryption = args.encrypt
-    in_file_path = args.input
-    out_file_path = args.output
-    chunk_size = args.chunk_size
-    worker_count = args.workers
-    key = derive_key_from_string(args.key)
-
-    if is_encryption:
-        nonce = int.from_bytes(os.urandom(8), "big")
+        # args
+        args = parse_args()
+        is_encryption = args.encrypt
+        in_file_path = args.input
+        out_file_path = args.output
         chunk_size = args.chunk_size
-    else:
-        header = read_header(in_file_path)
-        nonce = int.from_bytes(header[0], "big")
-        chunk_size = int.from_bytes(header[1], "big")
+        worker_count = args.workers
+        key = derive_key_from_string(args.key)
 
-    log.info(f'MODE: {'ENCRYPT' if is_encryption else 'DECRYPT'}')
-    log.info(f'IN: {in_file_path}')
-    log.info(f'OUT: {out_file_path}')
-    log.info(f'CHUNK SIZE: {chunk_size}')
-    log.info(f'WORKERS: {worker_count}')
-    log.info(f'KEY: {args.key}')
+        if is_encryption:
+            nonce = int.from_bytes(os.urandom(8), "big")
+            chunk_size = args.chunk_size
+        else:
+            header = read_header(in_file_path)
+            nonce = int.from_bytes(header[0], "big")
+            chunk_size = int.from_bytes(header[1], "big")
 
-    main()
+        log.info(f'MODE: {'ENCRYPT' if is_encryption else 'DECRYPT'}')
+        log.info(f'IN: {in_file_path}')
+        log.info(f'OUT: {out_file_path}')
+        log.info(f'CHUNK SIZE: {chunk_size}')
+        log.info(f'WORKERS: {worker_count}')
+        log.info(f'KEY: {args.key}')
 
-    log_listener.stop()
+        main()
+
+    except BaseException as e:
+        log.critical(f'Unexpected Error - {e}')
+    finally:
+        if log_listener:
+            log_listener.stop()
