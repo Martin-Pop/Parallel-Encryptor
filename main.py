@@ -51,7 +51,7 @@ def main():
     end = time.perf_counter()
 
     elapsed_ms = (end - start) * 1000
-    log.info(f"DONE IN: {elapsed_ms:.3f} ms")
+    log.info(f"PROGRAM FINISHED IN: {elapsed_ms:.3f} ms")
 
 
 if __name__ == "__main__":
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         main()
 
     except BaseException as e:
-        log.critical(f'Unexpected Error - {e}')
+        log.critical(f'Unexpected Error has occurred - {e}', exc_info=True)
     finally:
         if log_listener:
             log_listener.stop()

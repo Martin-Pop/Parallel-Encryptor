@@ -4,6 +4,7 @@ from typing import Optional
 import logging
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.exceptions import InvalidTag
 from io_utils.reader import map_read_file
 from io_utils.writer import map_write_file
 from logger.configure import add_queue_handler_to_root
@@ -67,9 +68,10 @@ def encryption_worker(config):
             write_offset = output_header_size + (chunk_id * output_step)
             out_len = len(out_data)
             mm_out[write_offset: write_offset + out_len] = out_data
-
+    except InvalidTag:
+        log.error(f'{'Encryption' if config.is_encryption else 'Decryption'} failed because of invalid key or invalid/corrupted file')
     except Exception as e:
-        log.error(f'Unexpected error has occurred: {e}', exc_info=True)
+        log.error(f'Unexpected error has occurred while {'encrypting' if config.is_encryption else 'decrypting'}: {e}', exc_info=True)
     finally:
         mm_in.close()
         mm_out.close()

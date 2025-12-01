@@ -1,11 +1,46 @@
-import logging
-import sys
+import sys, logging, copy
 
 from multiprocessing import Queue
 from logging.handlers import QueueListener, QueueHandler
 
-#TODO make custom QueueHandler and overwrite prepare function
-# so it doesnt delete exc_text while preparing the record obj for picle
+
+class KeepTraceBackQueueHandler(QueueHandler):
+    """
+    Slightly edited QueueHandler that keeps the stack trace text for pickling
+    """
+
+    def prepare(self, record):
+        """
+        Prepares record for queueing but keeps exc_text
+        :param record: record to prepare
+        :return: record object to queue
+        """
+        saved_info = record.exc_info
+        saved_text = record.exc_text
+
+        # must format text separately
+        if saved_info and not saved_text:
+            saved_text = logging.Formatter().formatException(saved_info)
+
+        record.exc_info = None
+        record.exc_text = None
+
+        # format message without any stack trace info
+        msg = self.format(record)
+
+        # restore for other handlers
+        record.exc_info = saved_info
+        record.exc_text = saved_text
+
+        record = copy.copy(record)
+        record.message = msg
+        record.msg = msg
+        record.args = None
+        record.exc_info = None
+        record.stack_info = None
+
+        return record
+
 
 class SuppressTracebackFormatter(logging.Formatter):
     """
@@ -22,6 +57,7 @@ class SuppressTracebackFormatter(logging.Formatter):
 
         return msg
 
+
 def configure_logger_queue(file_path, suppress_info=False):
     """
     Configures logger handlers for queue logging (QueueListener, QueueHandler)
@@ -32,13 +68,13 @@ def configure_logger_queue(file_path, suppress_info=False):
     file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
     # FILE
-    file_handler = logging.FileHandler(file_path, encoding="utf-8",mode='a')
+    file_handler = logging.FileHandler(file_path, encoding="utf-8", mode='a')
     file_handler.setLevel(logging.ERROR)
     file_handler.setFormatter(file_format)
 
     # CONSOLE
     if not suppress_info:
-        console_format= SuppressTracebackFormatter('%(levelname)s - %(message)s')
+        console_format = SuppressTracebackFormatter('%(levelname)s - %(message)s')
 
         console_info_handler = logging.StreamHandler(sys.stdout)
         console_info_handler.setLevel(logging.INFO)
@@ -49,7 +85,7 @@ def configure_logger_queue(file_path, suppress_info=False):
         console_err_handler.setLevel(logging.WARNING)
         console_err_handler.setFormatter(console_format)
 
-        handlers = (file_handler,console_info_handler, console_err_handler)
+        handlers = (file_handler, console_info_handler, console_err_handler)
     else:
         handlers = (file_handler,)
 
@@ -57,6 +93,7 @@ def configure_logger_queue(file_path, suppress_info=False):
     listener = QueueListener(log_queue, *handlers, respect_handler_level=True)
 
     return log_queue, listener
+
 
 def add_queue_handler_to_root(queue):
     """
@@ -66,4 +103,4 @@ def add_queue_handler_to_root(queue):
     """
     root = logging.getLogger()
     root.setLevel(logging.NOTSET)
-    root.addHandler(QueueHandler(queue))
+    root.addHandler(KeepTraceBackQueueHandler(queue))
