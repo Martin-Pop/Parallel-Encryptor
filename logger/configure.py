@@ -62,7 +62,7 @@ def configure_logger_queue(file_path, suppress_info=False):
     """
     Configures logger handlers for queue logging (QueueListener, QueueHandler)
     :param file_path: log file path
-    :param suppress_info: True to disable console logging
+    :param suppress_info: True to disable parameters logging
     :return: multiprocessing queue and QueueListener
     """
     file_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')

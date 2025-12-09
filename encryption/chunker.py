@@ -1,5 +1,6 @@
 from multiprocessing import Queue
 
+
 def create_chunk_task_queue(base_chunk_size, file_size, is_encryption):
     """
     Creates task queue - offsets for reading
