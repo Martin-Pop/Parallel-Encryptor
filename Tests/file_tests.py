@@ -15,15 +15,19 @@ class FileTest(unittest.TestCase):
         with open(filename, "wb") as f:
             f.write(content)
 
-        app.in_file_path = filename
-        app.out_file_path = filename
-        app.is_encryption = True
-        app.chunk_size = 1024
-        app.nonce = 12345
-        app.worker_count = 1
+        args = {
+            'is_encryption': True,
+            'in_file_path': filename,
+            'out_file_path': filename,
+            'chunk_size': 1024,
+            'worker_count': 1,
+            'key': derive_key_from_string('test'),
+            'nonce': 12345,
+            'key_string': 'test'
+        }
 
+        app.validated_args = args
         app.log_queue = Queue()
-        app.key = derive_key_from_string('test')
 
         try:
              app.main() #will err at undefined log variable - ignore
@@ -38,14 +42,23 @@ class FileTest(unittest.TestCase):
 
     def test_cleanup_on_crash(self):
 
-        app.in_file_path = "in.txt"
-        app.out_file_path = "out.enc"
-        app.is_encryption = True
-        app.chunk_size = 1024
-        app.nonce = 12345
-        app.worker_count = 2
+        in_file = 'in.txt'
+        out_file = 'out.bin'
 
-        with open(app.in_file_path, "wb") as f:
+        args = {
+            'is_encryption': True,
+            'in_file_path': in_file,
+            'out_file_path': out_file,
+            'chunk_size': 1024,
+            'worker_count': 2,
+            'key': derive_key_from_string('test'),
+            'nonce': 12345,
+            'key_string': 'test'
+        }
+
+        app.validated_args = args
+
+        with open(in_file, "wb") as f:
             f.write(b"data")
 
         # mock start_workers to err
@@ -58,7 +71,7 @@ class FileTest(unittest.TestCase):
                 pass
 
         #if encryption fails there should not be out file
-        self.assertFalse(os.path.exists(app.out_file_path),"corrupted file was not removed")
+        self.assertFalse(os.path.exists(out_file),"corrupted file was not removed")
 
 if __name__ == '__main__':
     unittest.main()
