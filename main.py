@@ -1,16 +1,26 @@
-import time, logging
+import time, logging, multiprocessing, sys, os
 
 from parameters.args import parse_args, validate_args
 
-from io_utils.reader import get_file_size, does_file_exists
-from io_utils.writer import create_file
-from io_utils.console import resolve_yes_no
+from utils.reader import get_file_size, does_file_exists
+from utils.writer import create_file
+from utils.console import resolve_yes_no
 
 from encryption.chunker import create_chunk_task_queue
 from encryption.worker_handler import start_workers
 from encryption.workers import EncryptionWorkerConfig
 
 from logger.configure import configure_logger_queue, add_queue_handler_to_root
+
+def get_path():
+    """
+    Gets a file path of the current directory where this script is located.
+    :return: file path
+    """
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(sys.executable)
+    else:
+        return os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
@@ -65,12 +75,13 @@ def main():
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
 
     log = logging.getLogger(__name__)
     log_listener = None
     try:
         # log
-        log_queue, log_listener = configure_logger_queue('app.log')
+        log_queue, log_listener = configure_logger_queue(os.path.join(get_path(), 'app.log'))
         add_queue_handler_to_root(log_queue)
 
         log_listener.start()

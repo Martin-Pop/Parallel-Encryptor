@@ -5,8 +5,8 @@ import logging
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.exceptions import InvalidTag
-from io_utils.reader import map_read_file
-from io_utils.writer import map_write_file
+from utils.reader import map_read_file
+from utils.writer import map_write_file
 from logger.configure import add_queue_handler_to_root
 
 log = logging.getLogger(__name__)

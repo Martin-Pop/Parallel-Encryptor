@@ -1,6 +1,6 @@
 import argparse, os
 
-from io_utils.reader import read_header
+from utils.reader import read_header
 from utils.crypto import derive_key_from_string
 
 class ArgumentParserCustom(argparse.ArgumentParser):
