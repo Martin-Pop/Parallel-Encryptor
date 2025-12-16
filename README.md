@@ -1,9 +1,12 @@
 # AES-GCM File Encryptor
 
-> ⚠️ **WARNING: WORK IN PROGRESS**
->
-> This project is currently in development.
-> * There may be critical bugs leading to data corruption.
+* **Author:** Martin Pop
+*  **Date:** Nov 26 - Dec 16 2025
+* **Project Type:** School Project with parallelization
+
+---
+
+> ⚠️ **WARNING**
 > * **Do not use this tool to encrypt important or sensitive data without having a backup.**
 
 ---
@@ -18,8 +21,8 @@ This allows it to process data chunks in parallel.
 
 ## Key Features
 
-* **Algorithm:** AES-256-GCM (Authenticated Encryption).
-* **Parallel Processing:** Uses a worker pool to encrypt/decrypt chunks concurrently.
+* **Algorithm:** AES-256-GCM (Authenticated Encryption Standard).
+* **Parallel Processing:** Uses a workers to encrypt/decrypt chunks concurrently.
 * **Memory Efficiency:** Utilizes `mmap` to handle files larger than available RAM.
 
 ---
@@ -27,45 +30,51 @@ This allows it to process data chunks in parallel.
 ## Requirements
 
 * Python 3.8+
-* `cryptography` library
-
-```bash
-pip install cryptography
-```
+* Third-Party Libraries:
+    * `cryptography` library used for encryption / decryption
+* Build tools:
+    * `pyinstaller` library for compiling into one executable file
 
 ---
 
 ## How It Works
 
-The tool splits the input file into fixed-size chunks to allow parallel processing.
-Encryption: * Reads N bytes of raw data.
-Writes N + 16 bytes (Encrypted Data + 16-byte Auth Tag).
-Decryption: * Reads N + 16 bytes.
-Writes N bytes of raw data.
-File Structure:
-Header (12 bytes): 8 bytes for nonce and 4 bytes for chunk size.
+* The tool splits the input file into fixed-size chunks to allow parallel processing.
+* Encryption: 
+    * Reads N bytes of raw data.
+    * Writes N + 16 bytes (Encrypted Data + 16-byte Auth Tag).
+* Decryption: 
+    * Reads N + 16 bytes.
+    * Writes N bytes of raw data.
+* Encrypted file structure: 
+    * Header (12 bytes): 8 bytes for nonce and 4 bytes for chunk size.
+    * Encrypted data (n bytes)
 
 ---
 
 ## Known Issues & Limitations
 
-- Parameters are not yet validated.
-- Unexpected crashes might not terminate all processes.
-- Keyboard interrupt while **starting processes** will result in frozen console!
-- There is no limit for worker count, however high number can result with freeze.
+* Keyboard interrupt while **starting processes** will freeze your console!
+* There is no limit for worker count, however high number is not recommended!
 ---
 
 ## Usage
 
 ### 1. Installation
 
-1. Clone the repository or download the zip and extract it.
-2. Install required dependencies
+* Download latest release
+* If you want to compile yourself or run in your python enviroment:
+    * clone repo `git clone https://github.com/Martin-Pop/Parallel-Encryptor.git`
+    * change directory: `cd Parallel-Encryptor`
+    * create virtual enviroment `python -m venv .venv`
+    * activate vevn `.\.venv\Scripts\activate`
+    * download dependencies `pip install -r requirements.txt`
+    * run `python main.py ....` or compile with pyinstaller `pyinstaller main.py`
 
 ### 2. Running the Script
 The script is run via the command line. You must specify whether you want to encrypt (-e) or decrypt (-d) the file.
 ```Bash
-python main.py [mode] -i <input_file> -o <output_file> -k <key> [options]
+<entry point> [mode] -i <input_file> -o <output_file> -k <key> [options]
 ```
 
 | Argument    | Flag              | Required | Description                                                   |
@@ -77,13 +86,15 @@ python main.py [mode] -i <input_file> -o <output_file> -k <key> [options]
 | Key         | -k, --key         | Yes      | The encryption key string. Ensure it is strong!              |
 | Chunk Size  | -c, --chunk-size  | No       | Size of data chunks in bytes. Default: 1048576 (1MB).        |
 | Workers     | -w, --workers     | No       | Number of parallel worker processes. Default: 2.             |
+| Force       | -f, --force       | No       | Forces overwriting existing output file.                     |
+
 
 ---
 
 ## Errors
 
-Errors are printed to the console as well as logged into file 'app.log' found in the same directory as 'main.py'
-. Log file also contains traceback.
+Errors are printed to the console as well as logged into file `app.log` found in the same directory as program entry point 
+. Some errors logs also contains traceback.
 
 ---
 
